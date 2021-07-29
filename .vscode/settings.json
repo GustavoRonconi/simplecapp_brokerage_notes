@@ -1,0 +1,8 @@
+{
+    "go.delveConfig": {
+        "useApiV1": false,
+        "dlvLoadConfig": {
+            "maxArrayValues": 400,
+        }
+    }
+}
