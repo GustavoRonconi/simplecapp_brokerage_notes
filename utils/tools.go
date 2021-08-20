@@ -19,8 +19,8 @@ func FindSlice(slice []string, val string) bool {
 }
 
 // Convert pdf to string
-func PdfToString() string {
-	res, err := docconv.ConvertPath("nota2.pdf")
+func PdfToString(fileName string) string {
+	res, err := docconv.ConvertPath(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,4 +49,19 @@ func ConvertToFloat(floatString string) float64 {
 		log.Fatal(err)
 	}
 	return floatValue
+}
+
+// Check operation (in, equal)
+func CheckOperation(searchString string, element string, operation string) bool {
+	switch operation {
+	case "=":
+		if element == searchString {
+			return true
+		}
+	case "in":
+		if strings.Contains(element, searchString) {
+			return true
+		}
+	}
+	return false
 }

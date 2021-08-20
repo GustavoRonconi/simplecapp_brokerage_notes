@@ -1,8 +1,6 @@
 package constructors
 
 import (
-	"fmt"
-	"log"
 	"regexp"
 	"simplecapp_brokerage_notes/brokerage_note/model"
 	"simplecapp_brokerage_notes/utils"
@@ -10,58 +8,45 @@ import (
 	"time"
 )
 
-var mapOperationTypes = map[string]string{
-	"C": "purchase",
-	"V": "sale",
-}
+var Corretora string = "INTER"
 
-func searchOperation(searchString string, element string, operation string) bool {
-	switch operation {
-	case "=":
-		if element == searchString {
-			return true
-		}
-	case "in":
-		if strings.Contains(element, searchString) {
-			return true
-		}
-	}
-	return false
-}
-
-func setNoteAttrs(note *model.BrokerageNote, splitedBody []string) {
-	// var financialOperations []model.FinancialOperation
-	var tickers []string
-	var operationTypes []string
-	var indexesSubtotal []int
-	var unitaryValues []float64
-	var amountValues []float64
-
+func NewInterNote(body string, fileName string) *model.BrokerageNote {
+	note := new(model.BrokerageNote)
+	note.FileName = fileName
+	splitedBody := strings.Split(body, "\n")
 	var tradingDate time.Time
-	// var operationTypes []string
+
+	//Financial Operations Primitive
+	financialOperationPrimitive := new(model.FinancialOperationPrimitive)
+
+	
+	//Aux vars
+	var indexesSubtotal []int
 
 	for i1, e1 := range splitedBody {
 
 		// cpf
-		if searchOperation("C.P.F./C.N.P.J./C.V.M./C.O.B.", e1, "=") {
+		if utils.CheckOperation("C.P.F./C.N.P.J./C.V.M./C.O.B.", e1, "=") {
 			cpfRegex := regexp.MustCompile(`[^\w]`)
 			note.CustomerCPF = cpfRegex.ReplaceAllString(splitedBody[i1+1], "")
 		}
 
 		// number note
-		if searchOperation("Nº Nota: ", e1, "in") {
+		if utils.CheckOperation("Nº Nota: ", e1, "in") {
 			note.NumberNote = strings.Split(splitedBody[i1], ": ")[1]
 		}
 
-		// data operacoes
-		if searchOperation("Data pregão: ", e1, "in") {
+		// operations date
+		if utils.CheckOperation("Data pregão: ", e1, "in") {
 			tradingDate = utils.ParseDefaultDate(strings.Split(splitedBody[i1], ": ")[1])
 		}
 
 		// tickers & operations_types
-		if searchOperation("SubTotal :", e1, "=") {
-			tickers = append(tickers, splitedBody[i1-1])
-			operationTypes = append(operationTypes, mapOperationTypes[strings.Split(splitedBody[i1-2], " ")[1]])
+		if utils.CheckOperation("SubTotal :", e1, "=") {
+			// tickers = append(tickers, splitedBody[i1-1])
+			financialOperationPrimitive.Tickers = append(financialOperationPrimitive.Tickers, splitedBody[i1-1])
+			// operationTypes = append(operationTypes, splitedBody[i1-2])
+			financialOperationPrimitive.OperationTypes = append(financialOperationPrimitive.OperationTypes, splitedBody[i1-2])
 
 			e2 := splitedBody[i1-1]
 			i2 := 1
@@ -78,38 +63,23 @@ func setNoteAttrs(note *model.BrokerageNote, splitedBody []string) {
 		}
 
 		// unitary values & amount
-		if searchOperation("Preço Liquidação (R$)", e1, "=") || searchOperation("Quantidade", e1, "=") {
+		if utils.CheckOperation("Preço Liquidação (R$)", e1, "=") || utils.CheckOperation("Quantidade", e1, "=") {
 			referIndex := i1
 			for _, indexSubtotal := range indexesSubtotal {
 				referIndex = referIndex + indexSubtotal
 				e3 := utils.ConvertToFloat(splitedBody[referIndex])
 
 				if e1 == "Quantidade" {
-					amountValues = append(amountValues, e3)
+					// amountValues = append(amountValues, e3)
+					financialOperationPrimitive.AmountValues = append(financialOperationPrimitive.AmountValues, e3)
 				} else {
-					unitaryValues = append(unitaryValues, e3)
+					// unitaryValues = append(unitaryValues, e3)
+					financialOperationPrimitive.UnitaryValues = append(financialOperationPrimitive.UnitaryValues, e3)
 				}
 			}
 		}
 	}
-
-	if len(tickers) != len(operationTypes) {
-		log.Fatal("Não foi possível processar a nota nº: ", note.NumberNote, " da corretora INTER")
-	}
-
-	// for i, item := range tickers {
-
-	// }
-
-	fmt.Println(tradingDate, tickers)
-}
-
-func NewInterNote(body string) *model.BrokerageNote {
-	note := new(model.BrokerageNote)
-	fmt.Println(body)
-	splitedBody := strings.Split(body, "\n")
-
-	setNoteAttrs(note, splitedBody)
+	note.SetFinancialOperations(tradingDate, fileName, financialOperationPrimitive)
 
 	return note
 }

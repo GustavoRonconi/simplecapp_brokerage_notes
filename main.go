@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	note := brokerage_note.GetBrokerageNoteInfo()
+	note := brokerage_note.GetBrokerageNoteInfo("nota2.pdf")
 	fmt.Println(note)
 
 }

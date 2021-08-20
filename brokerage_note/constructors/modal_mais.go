@@ -6,10 +6,11 @@ import (
 	"strings"
 )
 
-func NewModalMaisNote(body string) *model.BrokerageNote {
+func NewModalMaisNote(body string, fileName string) *model.BrokerageNote {
 	note := new(model.BrokerageNote)
 	splitedBody := strings.Split(body, "\n\n")
 
+	note.FileName = fileName
 	note.NumberNote = splitedBody[2]
 	note.CustomerCPF = splitedBody[8]
 

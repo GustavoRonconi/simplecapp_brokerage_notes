@@ -9,4 +9,5 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/levigross/exp-html v0.0.0-20120902181939-8df60c69a8f5 // indirect
 	golang.org/x/net v0.0.0-20210716203947-853a461950ff // indirect
+	gopkg.in/validator.v2 v2.0.0-20210331031555-b37d688a7fb0 // indirect
 )
